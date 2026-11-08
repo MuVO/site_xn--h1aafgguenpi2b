@@ -18,6 +18,62 @@ const showBank = activeTab === 'bank';
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const config = { ...loadEnv(mode, process.cwd(), 'PUBLIC_'), ...process.env };
 const getValue = (key) => config[key]?.trim() || '';
+const organization = getValue('PUBLIC_ORG_NAME') || 'по запросу';
+const siteUrl = getValue('PUBLIC_SITE_URL').replace(/\/+$/, '');
+const pagePath = showBank ? '/bank/' : '/main/';
+const canonicalUrl = siteUrl ? `${siteUrl}${pagePath}` : '';
+const pageTitle = `${showBank ? 'Банковские реквизиты' : 'Реквизиты'} — ${organization}`;
+const pageDescription = showBank
+  ? `Банковские реквизиты ${organization}: расчётный счёт, БИК и данные банка.`
+  : `Реквизиты и контакты ${organization}: ИНН, ОГРНИП и данные для договора.`;
+const organizationId = siteUrl ? `${siteUrl}/#organization` : undefined;
+const postalAddress = getValue('PUBLIC_POSTAL_ADDRESS');
+const structuredData = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': organizationId,
+      name: organization,
+      legalName: organization,
+      url: siteUrl || undefined,
+      logo: siteUrl ? `${siteUrl}/favicon.svg` : undefined,
+      taxID: getValue('PUBLIC_INN') || undefined,
+      identifier: getValue('PUBLIC_OGRNIP') || undefined,
+      email: getValue('PUBLIC_EMAIL') || undefined,
+      telephone: getValue('PUBLIC_PHONE') || undefined,
+      address: postalAddress
+        ? { '@type': 'PostalAddress', streetAddress: postalAddress, addressCountry: 'RU' }
+        : undefined,
+      sameAs: getValue('PUBLIC_TELEGRAM') ? [getValue('PUBLIC_TELEGRAM')] : undefined,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        email: getValue('PUBLIC_EMAIL') || undefined,
+        telephone: getValue('PUBLIC_PHONE') || undefined,
+        availableLanguage: 'Russian',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': siteUrl ? `${siteUrl}/#website` : undefined,
+      url: siteUrl || undefined,
+      name: 'Реквизитка',
+      inLanguage: 'ru-RU',
+      publisher: organizationId ? { '@id': organizationId } : undefined,
+    },
+    {
+      '@type': 'WebPage',
+      '@id': canonicalUrl || undefined,
+      url: canonicalUrl || undefined,
+      name: pageTitle,
+      description: pageDescription,
+      inLanguage: 'ru-RU',
+      isPartOf: siteUrl ? { '@id': `${siteUrl}/#website` } : undefined,
+      about: organizationId ? { '@id': organizationId } : undefined,
+    },
+  ],
+}).replace(/</g, '\\u003c');
 const makeField = (label, key, options = {}) => {
   const value = getValue(key);
   return {
@@ -28,7 +84,6 @@ const makeField = (label, key, options = {}) => {
   };
 };
 
-const organization = getValue('PUBLIC_ORG_NAME') || 'по запросу';
 const certificateSeries = getValue('PUBLIC_CERTIFICATE_SERIES');
 const certificateNumber = getValue('PUBLIC_CERTIFICATE_NUMBER');
 const registrationDate = getValue('PUBLIC_REGISTRATION_DATE');
@@ -90,12 +145,24 @@ const contacts = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f3f1eb" />
-    <meta name="description" content={`Реквизиты и контакты: ${organization}`} />
+    <meta name="description" content={pageDescription} />
+    <meta name="robots" content="index, follow" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{showBank ? 'Банковские реквизиты' : 'Реквизиты'} — {organization}</title>
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Реквизитка" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <title>{pageTitle}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script type="application/ld+json" set:html={structuredData}></script>
     <YandexMetrika />
   </head>
   <body>

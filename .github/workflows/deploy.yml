@@ -54,6 +54,7 @@ jobs:
           PUBLIC_EMAIL: ${{ vars.PUBLIC_EMAIL }}
           PUBLIC_TELEGRAM: ${{ vars.PUBLIC_TELEGRAM }}
           PUBLIC_CONTACT_FUNCTION_URL: ${{ vars.PUBLIC_CONTACT_FUNCTION_URL }}
+          PUBLIC_SITE_URL: https://${{ vars.SITE_DOMAIN }}
           PUBLIC_BANK_NAME: ${{ vars.PUBLIC_BANK_NAME }}
           PUBLIC_CURRENCY: ${{ vars.PUBLIC_CURRENCY }}
           PUBLIC_BANK_INN: ${{ vars.PUBLIC_BANK_INN }}

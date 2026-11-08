@@ -13,6 +13,8 @@ npm run dev
 
 ## Публикация через GitHub Pages
 
-Workflow `.github/workflows/deploy.yml` собирает проект на push в `main` и публикует `dist/` в GitHub Pages. До первого запуска задайте Actions repository variables `SITE_DOMAIN` и значения `PUBLIC_*` из `.env.example`. Для `PUBLIC_CONTACT_FUNCTION_URL` укажите публичный URL существующей AWS Lambda Function URL; адрес виден посетителям сайта и не является секретом. Telegram-токен в репозиторий и frontend не добавлять.
+Workflow `.github/workflows/deploy.yml` собирает проект на push в `main` и публикует `dist/` в GitHub Pages. Задайте Actions repository variable `SITE_DOMAIN` и значения `PUBLIC_*` из `.env.example`; в CI `PUBLIC_SITE_URL` формируется из `SITE_DOMAIN`. Для `PUBLIC_CONTACT_FUNCTION_URL` укажите публичный URL существующей AWS Lambda Function URL; адрес виден посетителям сайта и не является секретом. Telegram-токен в репозиторий и frontend не добавлять.
 
 Публикация с нового домена требует добавить его в CORS настройки AWS Lambda Function URL.
+
+Production-сборка также генерирует canonical/Schema.org-метаданные, `robots.txt` и `sitemap.xml` на основе `PUBLIC_SITE_URL`.

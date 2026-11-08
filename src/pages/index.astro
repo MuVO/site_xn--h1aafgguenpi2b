@@ -1,6 +1,9 @@
 ---
 import YandexMetrika from '../components/YandexMetrika.astro';
 const destination = '/main/';
+const organization = import.meta.env.PUBLIC_ORG_NAME || 'ИП Мущинских Владислав Олегович';
+const siteUrl = import.meta.env.PUBLIC_SITE_URL?.replace(/\/+$/, '') || '';
+const canonicalUrl = siteUrl ? `${siteUrl}${destination}` : '';
 ---
 <!doctype html>
 <html lang="ru">
@@ -8,7 +11,10 @@ const destination = '/main/';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="refresh" content={`0;url=${destination}`} />
-    <title>Реквизиты</title>
+    <meta name="description" content={`Реквизиты и контакты ${organization}.`} />
+    <meta name="robots" content="index, follow" />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <title>Реквизиты — {organization}</title>
     <YandexMetrika />
   </head>
   <body>
