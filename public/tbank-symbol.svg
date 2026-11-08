@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="29" height="34" viewBox="0 0 29 34" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Т-Банк</title>
+  <!-- Mark extracted from the official Russian logo: https://www.tbank.ru/about/brand/ -->
+  <path d="M0 4h29v13.5849c0 3.7388-1.9946 7.1939-5.2324 9.0636L14.5001 32l-9.26764-5.3515C1.99457 24.7786 0 21.3237 0 17.5849V4Z" fill="#FFDD2D"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M8 11v4.5077c.6164-.6961 1.7372-1.1671 3.0186-1.1671h1.3925v5.2401c0 1.3941-.3788 2.7592-.9408 3.4304h6.0573c-.5616-.6719-.9387-2.0353-.9387-3.4277v-5.2428h1.3926c1.2814 0 2.4021.471 3.0185 1.1671V11H8Z" fill="#333"/>
+</svg>

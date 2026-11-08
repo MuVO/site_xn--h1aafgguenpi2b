@@ -1,0 +1,152 @@
+---
+const { submitUrl = '', email = '', telegram = '' } = Astro.props;
+---
+<dialog class="contact-dialog" id="contact-dialog" aria-labelledby="contact-title">
+  <div class="dialog-card">
+    <button class="dialog-close" type="button" data-close-contact aria-label="Закрыть форму">×</button>
+    <div class="dialog-heading">
+      <span class="dialog-eyebrow">ОБРАТНАЯ СВЯЗЬ</span>
+      <h2 id="contact-title">Обсудим ваш вопрос?</h2>
+      <p>Оставьте контакты и коротко опишите, чем можем помочь.</p>
+    </div>
+
+    <form
+      class="contact-form"
+      id="contact-form"
+      data-submit-url={submitUrl}
+      data-unavailable="Онлайн-отправка пока не подключена. Свяжитесь с нами другим способом."
+      data-sending="Отправляем…"
+      data-success="Спасибо! Сообщение отправлено. Мы свяжемся с вами."
+      data-error="Извините, не удалось отправить сообщение из-за временной технической ошибки. Попробуйте позже или свяжитесь с нами другим способом."
+    >
+      <div class="contact-form-grid">
+        <label>
+          <span>Ваше имя</span>
+          <input name="name" type="text" autocomplete="name" maxlength="120" required />
+        </label>
+        <label>
+          <span>Email <small>(если удобнее)</small></span>
+          <input name="email" type="email" autocomplete="email" maxlength="254" />
+        </label>
+        <label>
+          <span>Телефон <small>(если удобнее)</small></span>
+          <input name="phone" type="tel" autocomplete="tel" maxlength="40" />
+        </label>
+        <label class="form-full">
+          <span>Ваш вопрос</span>
+          <textarea name="project" rows="4" maxlength="4000" placeholder="Расскажите, что вас интересует" required></textarea>
+        </label>
+      </div>
+      <p class="contact-hint">Для ответа укажите хотя бы один контакт: email или телефон.</p>
+
+      <label class="consent-row">
+        <input name="consent" type="checkbox" required />
+        <span>Согласен(на) на обработку персональных данных для ответа на обращение.</span>
+      </label>
+
+      <div class="form-actions">
+        <div class="form-feedback">
+          <p class="form-status" id="contact-status" role="status" aria-live="polite"></p>
+          <div class="form-alternatives" id="contact-alternatives" hidden>
+            <span>Связаться напрямую:</span>
+            {email && <a href={`mailto:${email}`}>Email</a>}
+            {telegram && <a href={telegram} target="_blank" rel="noreferrer">Telegram</a>}
+          </div>
+        </div>
+        <button class="form-submit" type="submit">Отправить <span aria-hidden="true">↗</span></button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector('#contact-dialog');
+  const form = document.querySelector('#contact-form');
+  const emailField = form.elements.email;
+  const phoneField = form.elements.phone;
+  const status = form.querySelector('#contact-status');
+  const alternatives = form.querySelector('#contact-alternatives');
+  const submitButton = form.querySelector('[type="submit"]');
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const PHONE_PATTERN = /^[+()0-9 .-]{7,40}$/;
+  const MIN_PHONE_DIGITS = 7;
+
+  function validateContact() {
+    const email = emailField.value.trim();
+    const phone = phoneField.value.trim();
+    const hasEmail = Boolean(email);
+    const hasPhone = Boolean(phone);
+    const emailIsValid = !hasEmail || EMAIL_PATTERN.test(email);
+    const phoneDigits = phone.replace(/\D/g, '').length;
+    const phoneIsValid = !hasPhone || (PHONE_PATTERN.test(phone) && phoneDigits >= MIN_PHONE_DIGITS);
+    let emailError = '';
+    let phoneError = '';
+    if (hasEmail && !emailIsValid) emailError = 'Введите корректный email.';
+    else if (!hasEmail && !hasPhone) emailError = 'Укажите email или телефон для ответа.';
+    if (hasPhone && !phoneIsValid) phoneError = `Введите корректный телефон (не менее ${MIN_PHONE_DIGITS} цифр).`;
+    else if (!hasPhone && !hasEmail) phoneError = 'Укажите телефон или email для ответа.';
+
+    emailField.setCustomValidity(emailError);
+    phoneField.setCustomValidity(phoneError);
+  }
+
+  document.querySelectorAll('[data-open-contact]').forEach((button) => {
+    button.addEventListener('click', () => dialog.showModal());
+  });
+
+  dialog.querySelector('[data-close-contact]').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  emailField.addEventListener('input', validateContact);
+  phoneField.addEventListener('input', validateContact);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    validateContact();
+    if (!form.reportValidity()) return;
+
+    const endpoint = form.dataset.submitUrl;
+    status.textContent = '';
+    alternatives.hidden = true;
+
+    if (!endpoint) {
+      status.textContent = form.dataset.unavailable;
+      alternatives.hidden = !alternatives.querySelector('a');
+      return;
+    }
+
+    submitButton.disabled = true;
+    status.textContent = form.dataset.sending;
+
+    const fields = new FormData(form);
+    const payload = {
+      name: fields.get('name'),
+      email: fields.get('email'),
+      phone: fields.get('phone'),
+      project: fields.get('project'),
+      consent: fields.get('consent') === 'on',
+      locale: document.documentElement.lang === 'en' ? 'en' : 'ru',
+    };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.ok !== true) throw new Error('request_failed');
+
+      status.textContent = form.dataset.success;
+      form.reset();
+      validateContact();
+    } catch {
+      status.textContent = form.dataset.error;
+      alternatives.hidden = !alternatives.querySelector('a');
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+</script>

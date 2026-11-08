@@ -1,0 +1,300 @@
+---
+import { loadEnv } from 'vite';
+import DataField from '../components/DataField.astro';
+import CopyValue from '../components/CopyValue.astro';
+import ContactDialog from '../components/ContactDialog.astro';
+import '../styles/global.css';
+
+export function getStaticPaths() {
+  return ['main', 'bank'].map((page) => ({
+    params: { page },
+    props: { activeTab: page },
+  }));
+}
+
+const { activeTab } = Astro.props;
+const showBank = activeTab === 'bank';
+const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+const config = { ...loadEnv(mode, process.cwd(), 'PUBLIC_'), ...process.env };
+const getValue = (key) => config[key]?.trim() || '';
+const makeField = (label, key, options = {}) => {
+  const value = getValue(key);
+  return {
+    label,
+    value: value || 'по запросу',
+    copyable: Boolean(value),
+    ...options,
+  };
+};
+
+const organization = getValue('PUBLIC_ORG_NAME') || 'по запросу';
+const certificateSeries = getValue('PUBLIC_CERTIFICATE_SERIES');
+const certificateNumber = getValue('PUBLIC_CERTIFICATE_NUMBER');
+const registrationDate = getValue('PUBLIC_REGISTRATION_DATE');
+const details = [
+  makeField('Наименование', 'PUBLIC_ORG_NAME'),
+  makeField('ИНН', 'PUBLIC_INN'),
+  makeField('Свидетельство', 'PUBLIC_CERTIFICATE_NUMBER', {
+    value: certificateSeries && certificateNumber
+      ? `${certificateSeries} №${certificateNumber}`
+      : 'по запросу',
+    copyable: Boolean(certificateSeries && certificateNumber),
+    subfield: {
+      label: 'Дата регистрации',
+      value: registrationDate || 'по запросу',
+      copyable: Boolean(registrationDate),
+    },
+  }),
+  makeField('ОГРН', 'PUBLIC_OGRNIP'),
+  makeField('Юридический адрес', 'PUBLIC_LEGAL_ADDRESS', { wide: true }),
+  makeField('Почтовый адрес', 'PUBLIC_POSTAL_ADDRESS', { wide: true }),
+];
+
+const bankFields = [
+  makeField('Банк', 'PUBLIC_BANK_NAME'),
+  makeField('ИНН банка', 'PUBLIC_BANK_INN'),
+  makeField('БИК банка', 'PUBLIC_BANK_BIK'),
+  makeField('Корреспондентский счёт банка', 'PUBLIC_CORR_ACCOUNT'),
+  makeField('Юридический адрес банка', 'PUBLIC_BANK_ADDRESS', { wide: true }),
+];
+const account = makeField('Расчётный счёт', 'PUBLIC_ACCOUNT');
+const bankName = getValue('PUBLIC_BANK_NAME') || 'по запросу';
+const currency = getValue('PUBLIC_CURRENCY') || 'по запросу';
+
+const contacts = [
+  {
+    label: 'Телефон',
+    value: getValue('PUBLIC_PHONE') || 'по запросу',
+    href: getValue('PUBLIC_PHONE')
+      ? `tel:${getValue('PUBLIC_PHONE').replace(/[^+\d]/g, '')}`
+      : '',
+  },
+  {
+    label: 'Почта',
+    value: getValue('PUBLIC_EMAIL') || 'по запросу',
+    href: getValue('PUBLIC_EMAIL') ? `mailto:${getValue('PUBLIC_EMAIL')}` : '',
+  },
+  {
+    label: 'Telegram',
+    value: getValue('PUBLIC_TELEGRAM')
+      ? getValue('PUBLIC_TELEGRAM').replace(/^https?:\/\/t\.me\//, '@')
+      : 'по запросу',
+    href: getValue('PUBLIC_TELEGRAM'),
+  },
+];
+---
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3f1eb" />
+    <meta name="description" content={`Реквизиты и контакты: ${organization}`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{showBank ? 'Банковские реквизиты' : 'Реквизиты'} — {organization}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="shell" id="top">
+      <header class="topbar">
+        <a class="wordmark" href="/main/" aria-label="На главную">
+          <span class="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
+              <circle cx="8.5" cy="10" r="2" />
+              <path d="M6 15c.6-1.1 1.4-1.6 2.5-1.6S10.4 13.9 11 15m2.5-5h4m-4 3h4" />
+            </svg>
+          </span>
+          Реквизитка
+        </a>
+        <span class="top-note">ИНФОРМАЦИЯ ДЛЯ ДОКУМЕНТОВ</span>
+        <button class="top-link" type="button" data-open-contact>
+          Связаться <span aria-hidden="true">↗</span>
+        </button>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live"></span> РЕКВИЗИТЫ И КОНТАКТЫ</div>
+          <h1>{organization}</h1>
+          <p>Всё необходимое для договора и оплаты — в одном месте.</p>
+        </div>
+      </section>
+
+      <nav class="route-tabs" role="tablist" aria-label="Разделы визитки">
+        <a
+          href="/main/"
+          role="tab"
+          id="main-tab"
+          aria-controls="main-panel"
+          aria-selected={!showBank}
+          class={!showBank ? 'active' : ''}
+        >Основное</a>
+        <a
+          href="/bank/"
+          role="tab"
+          id="bank-tab"
+          aria-controls="bank-panel"
+          aria-selected={showBank}
+          class={showBank ? 'active' : ''}
+        >Банковские реквизиты</a>
+      </nav>
+
+      <div
+        class="tab-panel"
+        id="main-panel"
+        role="tabpanel"
+        aria-labelledby="main-tab"
+        hidden={showBank}
+      >
+        <section class="panel entity">
+          <div class="section-label"><span>01</span> ОСНОВНАЯ ИНФОРМАЦИЯ</div>
+          <div class="details-grid">
+            {details.map((item) => <DataField {...item} />)}
+          </div>
+        </section>
+
+        <section class="panel contacts" id="contacts">
+          <div class="section-label"><span>02</span> КОНТАКТЫ</div>
+          <div class="contact-list">
+            {contacts.map(({ label, value, href }) => (
+              <div class="contact-item">
+                <span class="contact-type">{label.toUpperCase()}</span>
+                {href
+                  ? <a href={href} target={label === 'Telegram' ? '_blank' : undefined} rel={label === 'Telegram' ? 'noreferrer' : undefined}><span>{value}</span><b aria-hidden="true">↗</b></a>
+                  : <span class="contact-value">{value}</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section
+        class="tab-panel panel bank"
+        id="bank-panel"
+        role="tabpanel"
+        aria-labelledby="bank-tab"
+        hidden={!showBank}
+      >
+        <div class="bank-head">
+          <div class="section-label"><span>01</span> РЕКВИЗИТЫ СЧЁТА</div>
+          <div class="bank-logo">
+            <img class="bank-symbol" src="/tbank-symbol.svg" alt="Логотип Т-Банка" width="22" height="26" />
+            {bankName}
+          </div>
+        </div>
+
+        <div class="account-card">
+          <div class="account-top">
+            <span>РАСЧЁТНЫЙ СЧЁТ · {currency}</span>
+            <span class="account-chip">{currency} <b aria-hidden="true">●</b></span>
+          </div>
+          {account.copyable
+            ? <CopyValue label={account.label} value={account.value} className="account-number" />
+            : <span class="account-number">{account.value}</span>}
+          <div class="account-bottom">
+            <span>{bankName}</span>
+            <span>БАНКОВСКИЕ РЕКВИЗИТЫ</span>
+          </div>
+        </div>
+
+        <div class="bank-grid">
+          {bankFields.map((item) => <DataField {...item} />)}
+        </div>
+      </section>
+
+      <footer>
+        <span>© {new Date().getFullYear()} · {organization}</span>
+        <button type="button" id="copy-all" class="copy-all">Скопировать реквизиты <span aria-hidden="true">↗</span></button>
+        <button type="button" class="footer-cta" data-open-contact>
+          Хотите такую же реквизитку? <span aria-hidden="true">↗</span>
+        </button>
+        <a class="developer-badge" href="https://letsmakeit.ru" target="_blank" rel="noopener noreferrer" aria-label="Разработка: Let's make IT">
+          <img src="/lmi-mark.svg" alt="" width="18" height="18" />
+          <span>Разработка:</span><strong>Let's make IT</strong>
+        </a>
+      </footer>
+
+      <ContactDialog
+        submitUrl={getValue('PUBLIC_CONTACT_FUNCTION_URL')}
+        email={getValue('PUBLIC_EMAIL')}
+        telegram={getValue('PUBLIC_TELEGRAM')}
+      />
+      <div class="toast" id="toast" role="status" aria-live="polite">Скопировано</div>
+    </main>
+
+    <script>
+      let toastTimeout;
+
+      async function copy(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const input = document.createElement('textarea');
+          input.value = text;
+          document.body.append(input);
+          input.select();
+          document.execCommand('copy');
+          input.remove();
+        }
+
+        const toast = document.querySelector('#toast');
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 1700);
+      }
+
+      function setTab(name, updateUrl = true) {
+        const isBank = name === 'bank';
+        const mainPanel = document.querySelector('#main-panel');
+        const bankPanel = document.querySelector('#bank-panel');
+        const mainTab = document.querySelector('#main-tab');
+        const bankTab = document.querySelector('#bank-tab');
+
+        mainPanel.hidden = isBank;
+        bankPanel.hidden = !isBank;
+        mainTab.classList.toggle('active', !isBank);
+        bankTab.classList.toggle('active', isBank);
+        mainTab.setAttribute('aria-selected', String(!isBank));
+        bankTab.setAttribute('aria-selected', String(isBank));
+        const organizationName = document.querySelector('h1').textContent;
+        document.title = `${isBank ? 'Банковские реквизиты' : 'Реквизиты'} — ${organizationName}`;
+
+        if (updateUrl) history.pushState({}, '', isBank ? '/bank/' : '/main/');
+      }
+
+      document.addEventListener('click', (event) => {
+        const tab = event.target.closest('[role="tab"]');
+        if (tab) {
+          event.preventDefault();
+          setTab(tab.id === 'bank-tab' ? 'bank' : 'main');
+          return;
+        }
+
+        const copyButton = event.target.closest('.copy');
+        if (copyButton) {
+          event.preventDefault();
+          copy(copyButton.dataset.copy);
+          return;
+        }
+
+        if (event.target.closest('#copy-all')) {
+          const entries = [...document.querySelectorAll('.tab-panel:not([hidden]) .detail')]
+            .flatMap((field) => [...field.querySelectorAll('.value.copy')]
+              .map((button) => `${button.dataset.copyLabel || field.querySelector('.field-label').textContent}: ${button.dataset.copy}`));
+          const accountButton = document.querySelector('.account-number.copy');
+          if (accountButton && !accountButton.closest('[hidden]')) {
+            entries.unshift(`${accountButton.dataset.copyLabel}: ${accountButton.dataset.copy}`);
+          }
+          copy(entries.join('\n'));
+        }
+      });
+
+      window.addEventListener('popstate', () => {
+        setTab(location.pathname.includes('/bank') ? 'bank' : 'main', false);
+      });
+    </script>
+  </body>
+</html>

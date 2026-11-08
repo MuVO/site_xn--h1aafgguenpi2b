@@ -1,0 +1,19 @@
+---
+import CopyValue from './CopyValue.astro';
+
+const { label, value, copyable, wide = false, subfield } = Astro.props;
+---
+<div class:list={['detail', { wide }]}>
+  <span class="field-label">{label}</span>
+  {copyable
+    ? <CopyValue label={label} value={value} />
+    : <span class="value">{value}</span>}
+  {subfield && (
+    <div class="field-subvalue">
+      <span>{subfield.label}:</span>
+      {subfield.copyable
+        ? <CopyValue label={subfield.label} value={subfield.value} className="value" />
+        : <span>{subfield.value}</span>}
+    </div>
+  )}
+</div>
