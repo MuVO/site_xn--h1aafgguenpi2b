@@ -244,7 +244,7 @@ footer { display: flex; min-height: 54px; align-items: center; justify-content: 
   .form-submit { justify-content: space-between; }
   footer { flex-wrap: wrap; }
   .copy-all { order: 3; width: 100%; padding: 8px 0 14px; text-align: left; }
-  .developer-badge { order: 4; margin-bottom: 8px; }
+  .developer-badge { order: 4; margin: 0 0 8px auto; }
   .footer-cta { order: 2; }
 }
 
