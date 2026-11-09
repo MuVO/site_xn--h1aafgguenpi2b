@@ -243,7 +243,7 @@ footer { display: flex; min-height: 54px; align-items: center; justify-content: 
   .form-actions { align-items: stretch; flex-direction: column-reverse; }
   .form-submit { justify-content: space-between; }
   footer { flex-direction: column; flex-wrap: nowrap; gap: 10px; padding: 14px 4px; }
-  footer > span { order: 3; }
+  footer > span { display: none; }
   .copy-all { order: 1; align-self: flex-start; padding: 8px 0; text-align: left; }
   .developer-badge { order: 4; margin: 0 0 8px auto; }
   .footer-cta { order: 2; align-self: center; }
