@@ -242,10 +242,11 @@ footer { display: flex; min-height: 54px; align-items: center; justify-content: 
   .contact-item > a, .contact-value { font-size: 11px; }
   .form-actions { align-items: stretch; flex-direction: column-reverse; }
   .form-submit { justify-content: space-between; }
-  footer { flex-wrap: wrap; }
-  .copy-all { order: 3; width: 100%; padding: 8px 0 14px; text-align: left; }
+  footer { flex-direction: column; flex-wrap: nowrap; gap: 10px; padding: 14px 4px; }
+  footer > span { order: 1; }
+  .copy-all { order: 2; width: 100%; padding: 8px 0; text-align: center; }
   .developer-badge { order: 4; margin: 0 0 8px auto; }
-  .footer-cta { order: 2; }
+  .footer-cta { order: 3; align-self: center; }
 }
 
 @media (max-width: 390px) {
