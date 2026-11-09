@@ -6,13 +6,6 @@ import ContactDialog from '../components/ContactDialog.astro';
 import YandexMetrika from '../components/YandexMetrika.astro';
 import '../styles/global.css';
 
-export function getStaticPaths() {
-  return ['main', 'bank'].map((page) => ({
-    params: { page },
-    props: { activeTab: page },
-  }));
-}
-
 const { activeTab } = Astro.props;
 const showBank = activeTab === 'bank';
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development';
@@ -20,7 +13,7 @@ const config = { ...loadEnv(mode, process.cwd(), 'PUBLIC_'), ...process.env };
 const getValue = (key) => config[key]?.trim() || '';
 const organization = getValue('PUBLIC_ORG_NAME') || 'по запросу';
 const siteUrl = getValue('PUBLIC_SITE_URL').replace(/\/+$/, '');
-const pagePath = showBank ? '/bank/' : '/main/';
+const pagePath = showBank ? '/bank/' : '/';
 const canonicalUrl = siteUrl ? `${siteUrl}${pagePath}` : '';
 const pageTitle = `${showBank ? 'Банковские реквизиты' : 'Реквизиты'} — ${organization}`;
 const pageDescription = showBank
@@ -168,7 +161,7 @@ const contacts = [
   <body>
     <main class="shell" id="top">
       <header class="topbar">
-        <a class="wordmark" href="/main/" aria-label="На главную">
+        <a class="wordmark" href="/" aria-label="На главную">
           <span class="mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
               <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
@@ -194,7 +187,7 @@ const contacts = [
 
       <nav class="route-tabs" role="tablist" aria-label="Разделы визитки">
         <a
-          href="/main/"
+          href="/"
           role="tab"
           id="main-tab"
           aria-controls="main-panel"
@@ -331,7 +324,7 @@ const contacts = [
         const organizationName = document.querySelector('h1').textContent;
         document.title = `${isBank ? 'Банковские реквизиты' : 'Реквизиты'} — ${organizationName}`;
 
-        if (updateUrl) history.pushState({}, '', isBank ? '/bank/' : '/main/');
+        if (updateUrl) history.pushState({}, '', isBank ? '/bank/' : '/');
       }
 
       document.addEventListener('click', (event) => {

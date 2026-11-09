@@ -1,24 +1,4 @@
 ---
-import YandexMetrika from '../components/YandexMetrika.astro';
-const destination = '/main/';
-const organization = import.meta.env.PUBLIC_ORG_NAME || 'ИП Мущинских Владислав Олегович';
-const siteUrl = import.meta.env.PUBLIC_SITE_URL?.replace(/\/+$/, '') || '';
-const canonicalUrl = siteUrl ? `${siteUrl}${destination}` : '';
+import BusinessCard from '../layouts/BusinessCard.astro';
 ---
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="refresh" content={`0;url=${destination}`} />
-    <meta name="description" content={`Реквизиты и контакты ${organization}.`} />
-    <meta name="robots" content="index, follow" />
-    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-    <title>Реквизиты — {organization}</title>
-    <YandexMetrika />
-  </head>
-  <body>
-    <p>Переход к визитке: <a href={destination}>Основное</a></p>
-    <script>window.location.replace('/main/');</script>
-  </body>
-</html>
+<BusinessCard activeTab="main" />
